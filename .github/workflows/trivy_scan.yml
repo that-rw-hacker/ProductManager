@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Uncomment and configure this step if your project utilizes multi-stage builds or platform-specific builds
       # - name: Set up Docker Buildx
