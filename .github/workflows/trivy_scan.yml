@@ -1,35 +1,29 @@
-name: Trivy Scan
-
+name: build
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
-    branches:
-      - main
-      - master
-
 jobs:
-  trivy_scan:
-    runs-on: ubuntu-latest
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      # Uncomment and configure this step if your project utilizes multi-stage builds or platform-specific builds
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@v1
-
-      - name: Build Docker image
-        run: docker build . -t product-manager
-
-      - name: Run Trivy Scan
+      - name: Build an image from Dockerfile
         run: |
-          docker run --rm -v $(pwd):/workdir aquasec/trivy:latest image -f json -o trivy_results.json product-manager
+          docker build -t docker.io/my-organization/my-app:${{ github.sha }} .
 
-      - name: Upload Trivy Results
-        uses: actions/upload-artifact@v2
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
         with:
-          name: trivy-results
-          path: trivy_results.json
+          image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
